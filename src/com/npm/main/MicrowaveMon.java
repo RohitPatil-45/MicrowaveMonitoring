@@ -6,8 +6,7 @@
 package com.npm.main;
 
 import com.npm.dao.DatabaseHelper;
-import static com.npm.main.MicrowaveMonitoring.txMuteStatusMap;
-import static com.npm.main.MicrowaveMonitoring.updatelogList;
+
 import com.npm.model.DmbsModel;
 import com.npm.model.MicrowaveModel;
 import java.sql.Timestamp;
@@ -46,17 +45,23 @@ public class MicrowaveMon implements Runnable {
         String deviceIP = model.getDeviceIP();
         System.out.println("Device IP: " + deviceIP);
 
-        String oid_ber = "1.3.6.1.4.1.2509.8.18.2.10.1.12.1"; // bit error ratio
-        String oid_rssi = "1.3.6.1.4.1.2509.8.18.2.10.1.4.1";  // RSSI
-        String oid_txp = "1.3.6.1.4.1.2509.8.22.2.1.1.5.6";   // TX Power
-        String oid_txmute = "1.3.6.1.4.1.2509.8.10.2.14";        // TX Mute
+        String oid_ber = "1.3.6.1.4.1.2509.8.18.2.10.1.12.1"; // bit error ratio  10
+        String oid_rssi = "1.3.6.1.4.1.2509.8.18.2.10.1.4.1";  // RSSI   -23
+        String oid_txp = "1.3.6.1.4.1.2509.8.22.2.1.1.5.6";   // TX Power  1000
+        String oid_txmute = "1.3.6.1.4.1.2509.8.10.2.14";        // TX Mute  1=On  2 =OFF 
 
         SNMPUtil su = new SNMPUtil();
 
         try {
             su.start();
+            Target target = null;
+            if (RequestSNMPMain.isSimulation) {
+                target = su.getTarget("udp:127.0.0.1/161", "slot1", SnmpConstants.version2c);
 
-            Target target = su.getTarget("udp:" + deviceIP + "/161", "slot1", SnmpConstants.version2c);
+            } else {
+                target = su.getTarget("udp:" + deviceIP + "/161", "slot1", SnmpConstants.version2c);
+
+            }
 
             ber_val = su.BandwidthGetVect(target, "Out", new OID(oid_ber));
             rssi_val = su.BandwidthGetVect(target, "Out", new OID(oid_rssi));
@@ -80,7 +85,8 @@ public class MicrowaveMon implements Runnable {
             MicrowaveMonitoring.updateList.add(microwave);
             MicrowaveMonitoring.updatelogList.add(microwave);
 
-            String Old_txmute_val = MicrowaveMonitoring.txMuteStatusMap.get(deviceIP).toString();
+            String Old_txmute_val = MicrowaveMonitoring.txMuteMap.get(deviceIP).toString();
+            System.out.println("Tx mute:"+deviceIP+":"+Old_txmute_val);
             if (!Old_txmute_val.equalsIgnoreCase(txmute_val)) {
 
                 eventMsg = txmute_val.equalsIgnoreCase("2") ? "Microwave : " + model.getDeviceName() + " is Off" : "Microwave : " + model.getDeviceName() + " is On";
@@ -88,6 +94,7 @@ public class MicrowaveMon implements Runnable {
                 problem = txmute_val.equalsIgnoreCase("2") ? "problem" : "Cleared";
                 netadmin_msg = eventMsg;
                 serviceId = "tx_mute";
+                MicrowaveMonitoring.txMuteMap.put(deviceIP, txmute_val);
                 db.insertIntoEventLog(deviceIP, model.getDeviceName(), eventMsg, 4, "Tx Mute", new Timestamp(System.currentTimeMillis()), netadmin_msg, isAffected, problem, serviceId, model.getDeviceType());
             }
 
@@ -118,9 +125,9 @@ public class MicrowaveMon implements Runnable {
             String h_latencystatus = MicrowaveMonitoring.rssiThresholdMap.get(deviceID).toString();
 
             if (actual_value > threshold && h_latencystatus.equalsIgnoreCase("Low")) {
-                System.out.println("Microwave rssi :High" + actual_value + " rssi threshold value=" + threshold + " rssi status=" + "High" + " ip=" + deviceID);
+                System.out.println("Microwave rssi : High : " + actual_value + " / rssi threshold value = " + threshold + " / rssi status = " + "High" + " ip = " + deviceID);
                 eventMsg = "Microwave rssi Threshold:High" + actual_value + " rssi threshold value=" + threshold + " rssi status=" + "High" + " Device Name=" + deviceName;
-                netadmin_msg = "Microwave rssi Threshold:High" + actual_value + " rssi threshold value=" + threshold + " rssi status=" + "High" + " Device Name=" + deviceName;
+                netadmin_msg = "Microwave rssi Threshold : High : " + actual_value + " / rssi threshold value = " + threshold + " / rssi status = " + "High" + " / Device Name = " + deviceName;
                 MicrowaveMonitoring.rssiThresholdMap.put(deviceID, "High");
                 //DatabaseHelper db = new DatabaseHelper();
 
@@ -138,7 +145,7 @@ public class MicrowaveMon implements Runnable {
                 problem = "Cleared";
 
                 eventMsg = "Microwave rssi Threshold:Low" + actual_value + " rssi threshold value=" + threshold + " rssi status=" + "Low" + " Device Name=" + deviceName;
-                netadmin_msg = "Microwave rssi Threshold:Low" + actual_value + " rssi threshold value=" + threshold + " rssi status=" + "Low" + " Device Name=" + deviceName;
+                netadmin_msg = "Microwave rssi Threshold : Low : " + actual_value + " / rssi threshold value = " + threshold + " / rssi status = " + "Low" + " / Device Name = " + deviceName;
 
                 db.rssiThresholdLog(deviceID, deviceName, threshold, actual_value, "Low", logDateTime);
 
@@ -164,7 +171,7 @@ public class MicrowaveMon implements Runnable {
             if (actual_value > threshold && h_latencystatus.equalsIgnoreCase("Low")) {
                 System.out.println("Tx Power :High" + actual_value + " Tx Power value=" + threshold + " Tx Power status=" + "High" + " ip=" + deviceID);
                 eventMsg = "Tx Power Threshold:High" + actual_value + " Tx Power threshold value=" + threshold + " Tx Power status=" + "High" + " Device Name=" + deviceName;
-                netadmin_msg = "Tx Power Threshold:High" + actual_value + " Tx Power threshold value=" + threshold + " Tx Power status=" + "High" + " Device Name=" + deviceName;
+                netadmin_msg = "Tx Power Threshold : High : " + actual_value + " / Tx Power threshold value = " + threshold + " / Tx Power status = " + "High" + " / Device Name=" + deviceName;
                 MicrowaveMonitoring.txPowerThresholdMap.put(deviceID, "High");
                 //   DatabaseHelper db = new DatabaseHelper();
                 isAffected = "1";
@@ -179,7 +186,7 @@ public class MicrowaveMon implements Runnable {
                 isAffected = "0";
                 problem = "Cleared";
                 eventMsg = "Tx Power Threshold:Low" + actual_value + " Tx Power threshold value=" + threshold + " Tx Power status=" + "Low" + " Device Name=" + deviceName;
-                netadmin_msg = "Tx Power Threshold:Low" + actual_value + " Tx Power threshold value=" + threshold + " Tx Power status=" + "Low" + " Device Name=" + deviceName;
+                netadmin_msg = "Tx Power Threshold : Low : " + actual_value + " / Tx Power threshold value = " + threshold + " / Tx Power status = " + "Low" + " / Device Name=" + deviceName;
                 db.txPowerThresholdLog(deviceID, deviceName, threshold, actual_value, "Low", logDateTime);
 
                 db.insertIntoEventLog(deviceID, deviceName, eventMsg, 4, "TXP", logDateTime, netadmin_msg, isAffected, problem, serviceId, model.getDeviceType()); //Evrnt log

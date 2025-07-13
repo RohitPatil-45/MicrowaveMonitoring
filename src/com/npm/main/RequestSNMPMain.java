@@ -17,7 +17,10 @@ import java.util.concurrent.TimeUnit;
  */
 public class RequestSNMPMain {
 
+    public static boolean isSimulation=true;
     public static void main(String[] args) {
+        
+        
 
         try {
             Thread t2 = null;

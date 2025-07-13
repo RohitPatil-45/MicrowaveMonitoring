@@ -25,6 +25,7 @@ import java.util.concurrent.TimeUnit;
  * @author Kratos
  */
 public class MicrowaveMonitoring implements Runnable {
+    
 
     public static HashMap<String, DmbsModel> mapNodeData = null;
 
@@ -36,7 +37,7 @@ public class MicrowaveMonitoring implements Runnable {
 
     public static HashMap rssiThresholdMap = null;
     public static HashMap txPowerThresholdMap = null;
-    public static HashMap txMuteStatusMap = null;
+    public static HashMap txMuteMap = null;
 
     public static int rssiThresholdParam;
     public static int txPowerThresholdParam;
@@ -55,7 +56,7 @@ public class MicrowaveMonitoring implements Runnable {
 
         rssiThresholdMap = new HashMap<>();
         txPowerThresholdMap = new HashMap<>();
-        txMuteStatusMap = new HashMap<>();
+        txMuteMap = new HashMap<>();
 
         DatabaseHelper helper = new DatabaseHelper();
         mapNodeData = helper.getNodeData();
@@ -64,12 +65,12 @@ public class MicrowaveMonitoring implements Runnable {
         try (
                 Connection con = Datasource.getConnection();
                 Statement st = con.createStatement();
-                ResultSet rs = st.executeQuery("SELECT DEVICE_IP, RSSI_STATUS, TXP_STATUS, TX_MUTE_STATUS FROM microwave_monitoring");) {
+                ResultSet rs = st.executeQuery("SELECT DEVICE_IP, RSSI_STATUS, TXP_STATUS, TX_MUTE_STATUS, TX_MUTE FROM microwave_monitoring where DEVICE_IP='172.30.252.42'");) {
 
             while (rs.next()) {
                 rssiThresholdMap.put(rs.getString("DEVICE_IP"), rs.getString("RSSI_STATUS"));
                 txPowerThresholdMap.put(rs.getString("DEVICE_IP"), rs.getString("TXP_STATUS"));
-                txMuteStatusMap.put(rs.getString("DEVICE_IP"), rs.getString("TX_MUTE_STATUS"));
+                txMuteMap.put(rs.getString("DEVICE_IP"), rs.getString("TX_MUTE"));
             }
 
         } catch (Exception e) {

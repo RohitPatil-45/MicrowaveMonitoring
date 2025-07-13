@@ -17,10 +17,10 @@ public class Datasource {
     public static Connection getConnection() {
         Connection con = null;
 
-        String jdbcURL = "jdbc:mysql://localhost:3306/bescom?useSSL=false&rewriteBatchedStatements=true";
+        String jdbcURL = "jdbc:mysql://localhost:9007/bescom?useSSL=false&rewriteBatchedStatements=true";
 
         String username = "root";
-        String password = "root";
+        String password = "Syst3m4$";
         try {
 
             Class.forName("com.mysql.cj.jdbc.Driver");
