@@ -93,11 +93,14 @@ public class DatabaseHelper {
         PreparedStatement pstmtThresholdUpdate = null;
         try {
             threshold_update_con = Datasource.getConnection();
-            pstmtThresholdUpdate = threshold_update_con.prepareStatement("UPDATE microwave_monitoring SET RSSI_STATUS=?,RSSI=?,EVENT_TIMESTAMP=? WHERE DEVICE_IP=?");
+            pstmtThresholdUpdate = threshold_update_con.prepareStatement("UPDATE microwave_monitoring SET RSSI_STATUS=?,RSSI=?,EVENT_TIMESTAMP=?,RSSI_Generated_Time=?,"
+                    + "RSSI_Cleared_Time=? WHERE DEVICE_IP=?");
             pstmtThresholdUpdate.setString(1, status);
             pstmtThresholdUpdate.setString(2, String.valueOf(actual_value));
             pstmtThresholdUpdate.setTimestamp(3, logDateTime);
-            pstmtThresholdUpdate.setString(4, device_ip);
+            pstmtThresholdUpdate.setTimestamp(4, status.equalsIgnoreCase("High") ? logDateTime : null);
+            pstmtThresholdUpdate.setTimestamp(5, status.equalsIgnoreCase("Low") ? logDateTime : null);
+            pstmtThresholdUpdate.setString(6, device_ip);
             pstmtThresholdUpdate.executeUpdate();
         } catch (Exception e) {
             System.out.println("UPDATE microwave_monitoring alert exception normal:" + e);
@@ -246,11 +249,14 @@ public class DatabaseHelper {
         PreparedStatement pstmtThresholdUpdate = null;
         try {
             threshold_update_con = Datasource.getConnection();
-            pstmtThresholdUpdate = threshold_update_con.prepareStatement("UPDATE microwave_monitoring SET TXP_STATUS=?,TXP=?,EVENT_TIMESTAMP=? WHERE DEVICE_IP=?");
+            pstmtThresholdUpdate = threshold_update_con.prepareStatement("UPDATE microwave_monitoring SET TXP_STATUS=?,TXP=?,EVENT_TIMESTAMP=?,"
+                    + "TXP_Generated_Time=?,TXP_Cleared_Time=? WHERE DEVICE_IP=?");
             pstmtThresholdUpdate.setString(1, status);
             pstmtThresholdUpdate.setString(2, String.valueOf(actual_value));
             pstmtThresholdUpdate.setTimestamp(3, logDateTime);
-            pstmtThresholdUpdate.setString(4, device_ip);
+            pstmtThresholdUpdate.setTimestamp(4, status.equalsIgnoreCase("High") ? logDateTime : null);
+            pstmtThresholdUpdate.setTimestamp(5, status.equalsIgnoreCase("Low") ? logDateTime : null);
+            pstmtThresholdUpdate.setString(6, device_ip);
             pstmtThresholdUpdate.executeUpdate();
         } catch (Exception e) {
             System.out.println("insert latency alert exception normal:" + e);
@@ -264,6 +270,37 @@ public class DatabaseHelper {
                 }
             } catch (Exception exp) {
                 System.out.println("insert mars log exp:" + exp);
+            }
+        }
+    }
+
+    public void updateTxMuteStatus(String deviceIP, String txmute_val, Timestamp logtime) {
+        Connection con = null;
+        PreparedStatement pst = null;
+        try {
+            con = Datasource.getConnection();
+            pst = con.prepareStatement("UPDATE microwave_monitoring SET TX_MUTE=?, TX_MUTE_STATUS=?,EVENT_TIMESTAMP=?, TX_MUTE_Generated_Time=?, "
+                    + "TX_MUTE_Cleared_Time=? WHERE DEVICE_IP=?");
+            pst.setString(1, txmute_val);
+            pst.setString(2, txmute_val.equalsIgnoreCase("1") ? "On" : "Off");
+            pst.setTimestamp(3, logtime);
+            pst.setTimestamp(4, txmute_val.equalsIgnoreCase("2") ? logtime : null);
+            pst.setTimestamp(5, txmute_val.equalsIgnoreCase("1") ? logtime : null);
+            pst.setString(6, deviceIP);
+
+            pst.executeUpdate();
+        } catch (Exception e) {
+            System.out.println("UPDATE microwave_monitoring exception normal:" + e);
+        } finally {
+            try {
+                if (pst != null) {
+                    pst.close();
+                }
+                if (con != null) {
+                    con.close();
+                }
+            } catch (Exception exp) {
+                System.out.println("update microwave_monitoring log exp:" + exp);
             }
         }
     }

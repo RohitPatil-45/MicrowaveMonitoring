@@ -44,6 +44,8 @@ public class MicrowaveMon implements Runnable {
 
         String deviceIP = model.getDeviceIP();
         System.out.println("Device IP: " + deviceIP);
+        
+        Timestamp logtime = new Timestamp(System.currentTimeMillis());
 
         String oid_ber = "1.3.6.1.4.1.2509.8.18.2.10.1.12.1"; // bit error ratio  10
         String oid_rssi = "1.3.6.1.4.1.2509.8.18.2.10.1.4.1";  // RSSI   -23
@@ -72,6 +74,8 @@ public class MicrowaveMon implements Runnable {
             System.out.println("RSSI Value    : " + rssi_val);
             System.out.println("TX Power      : " + txp_val);
             System.out.println("TX Mute Value : " + txmute_val);
+            
+            
 
             MicrowaveModel microwave = new MicrowaveModel();
             microwave.setDeviceIP(deviceIP);
@@ -80,7 +84,7 @@ public class MicrowaveMon implements Runnable {
             microwave.setRssi(rssi_val);
             microwave.setTx_mute(txmute_val);
             microwave.setTxp(txp_val);
-            microwave.setEventTime(new Timestamp(System.currentTimeMillis()));
+            microwave.setEventTime(logtime);
 
             MicrowaveMonitoring.updateList.add(microwave);
             MicrowaveMonitoring.updatelogList.add(microwave);
@@ -95,7 +99,8 @@ public class MicrowaveMon implements Runnable {
                 netadmin_msg = eventMsg;
                 serviceId = "tx_mute";
                 MicrowaveMonitoring.txMuteMap.put(deviceIP, txmute_val);
-                db.insertIntoEventLog(deviceIP, model.getDeviceName(), eventMsg, 4, "Tx Mute", new Timestamp(System.currentTimeMillis()), netadmin_msg, isAffected, problem, serviceId, model.getDeviceType());
+                db.updateTxMuteStatus(deviceIP, txmute_val, logtime);
+                db.insertIntoEventLog(deviceIP, model.getDeviceName(), eventMsg, 4, "Tx Mute", logtime, netadmin_msg, isAffected, problem, serviceId, model.getDeviceType());
             }
 
             checkRssiThreshold(Double.valueOf(rssi_val), deviceIP, model.getDeviceName());
