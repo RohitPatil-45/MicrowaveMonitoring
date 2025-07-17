@@ -6,7 +6,9 @@
 package com.npm.dao;
 
 import com.npm.datasource.Datasource;
+import com.npm.main.MicrowaveMonitoring;
 import com.npm.model.DmbsModel;
+import com.npm.model.MicrowaveTxMuteStatusHistory;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -302,6 +304,18 @@ public class DatabaseHelper {
             } catch (Exception exp) {
                 System.out.println("update microwave_monitoring log exp:" + exp);
             }
+        }
+    }
+
+    public void insertTxMuteStatusHistory(String deviceIP, String txmute_val, Timestamp logtime) {
+        try {
+            MicrowaveTxMuteStatusHistory node = new MicrowaveTxMuteStatusHistory();
+            node.setDeviceIP(deviceIP);
+            node.setTx_mute_status(txmute_val);
+            node.setEventTimestamp(logtime);
+            MicrowaveMonitoring.txMuteStatusHistory.add(node);
+        } catch (Exception exp) {
+            System.out.println(deviceIP + "Exception in adding insertTxMuteStatusHistory=" + exp);
         }
     }
 

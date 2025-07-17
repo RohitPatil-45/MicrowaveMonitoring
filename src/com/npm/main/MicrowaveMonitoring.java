@@ -9,6 +9,7 @@ import com.npm.dao.DatabaseHelper;
 import com.npm.datasource.Datasource;
 import com.npm.model.DmbsModel;
 import com.npm.model.MicrowaveModel;
+import com.npm.model.MicrowaveTxMuteStatusHistory;
 import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.Statement;
@@ -34,6 +35,9 @@ public class MicrowaveMonitoring implements Runnable {
 
     public static ArrayList<MicrowaveModel> updatelogList = null;
     public static ArrayList<MicrowaveModel> updateListlogTemp = null;
+    
+    public static ArrayList<MicrowaveTxMuteStatusHistory> txMuteStatusHistory = null;
+    public static ArrayList<MicrowaveTxMuteStatusHistory> txMuteStatusHistoryTemp = null;
 
     public static HashMap rssiThresholdMap = null;
     public static HashMap txPowerThresholdMap = null;
@@ -53,6 +57,9 @@ public class MicrowaveMonitoring implements Runnable {
 
         updatelogList = new ArrayList<>();
         updateListlogTemp = new ArrayList<>();
+        
+        txMuteStatusHistory = new ArrayList<>();
+        txMuteStatusHistoryTemp = new ArrayList<>();
 
         rssiThresholdMap = new HashMap<>();
         txPowerThresholdMap = new HashMap<>();

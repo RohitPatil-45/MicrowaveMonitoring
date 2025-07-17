@@ -1,6 +1,7 @@
 package com.npm.main;
 
 import com.npm.dao.MicrowaveMonitoringLog;
+import com.npm.dao.TxMuteStatusHistory;
 import com.npm.dao.updateMicrowaveMonitoring;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
@@ -49,11 +50,15 @@ public class RequestSNMPMain {
         
          try {
             ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(2);
-            //Insertion in SNMPTrapLog Table
+            //update in updateMicrowaveMonitoring 
             scheduler.scheduleAtFixedRate(new updateMicrowaveMonitoring(), 0, 12, TimeUnit.SECONDS);
 
-            //update in snmp_trap_live_status;
+            //insert in MicrowaveMonitoringLog;
             scheduler.scheduleAtFixedRate(new MicrowaveMonitoringLog(), 0, 12, TimeUnit.SECONDS);
+            
+            //insert into microwave_tx_mute_status_history
+            scheduler.scheduleAtFixedRate(new TxMuteStatusHistory(), 0, 12, TimeUnit.SECONDS);
+            
         } catch (Exception e) {
              System.out.println("Exception === "+e);
         }

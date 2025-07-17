@@ -100,6 +100,7 @@ public class MicrowaveMon implements Runnable {
                 serviceId = "tx_mute";
                 MicrowaveMonitoring.txMuteMap.put(deviceIP, txmute_val);
                 db.updateTxMuteStatus(deviceIP, txmute_val, logtime);
+                db.insertTxMuteStatusHistory(deviceIP, txmute_val.equalsIgnoreCase("2") ? "Off" : "On", logtime);
                 db.insertIntoEventLog(deviceIP, model.getDeviceName(), eventMsg, 4, "Tx Mute", logtime, netadmin_msg, isAffected, problem, serviceId, model.getDeviceType());
             }
 
